@@ -1,0 +1,2 @@
+# scalars
+GraphQL Scalars
