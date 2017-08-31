@@ -1,0 +1,33 @@
+{
+  "name": "scalars",
+  "version": "0.0.0",
+  "description": "GraphQL Joi Scalars",
+  "main": "lib",
+  "scripts": {
+    "lint": "belly-button",
+    "test": "lab -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geek/scalars.git"
+  },
+  "keywords": [
+    "graphql",
+    "joi",
+    "scalar"
+  ],
+  "author": "wyatt",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/geek/scalars/issues"
+  },
+  "homepage": "https://github.com/geek/scalars#readme",
+  "devDependencies": {
+    "belly-button": "^4.0.1",
+    "lab": "^14.2.2"
+  },
+  "dependencies": {
+    "graphql": "^0.11.2",
+    "joi": "^10.6.0"
+  }
+}
