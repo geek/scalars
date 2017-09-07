@@ -332,4 +332,33 @@ describe('JoiString()', () => {
 
     return Promise.resolve();
   });
+
+  it('validates alphanum', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'RootQueryType',
+        fields: {
+          person: {
+            type: GraphQLString,
+            args: {
+              name: { type: Scalars.JoiString({ alphanum: true }) }
+            },
+            resolve: (root, (info, { name }) => name)
+          }
+        }
+      })
+    });
+
+    const result = await Graphql.graphql(schema, `{ person(name: "roger") }`);
+    expect(result.data.person).to.equal('roger');
+
+    try {
+      const invalid = await Graphql.graphql(schema, `{ person(name: "@@@") }`);
+      expect(invalid).to.not.exist();
+    } catch (err) {
+      expect(err).to.be.error();
+    }
+
+    return Promise.resolve();
+  });
 });
