@@ -46,11 +46,19 @@ Supports all of the [Joi Any](https://github.com/hapijs/joi/blob/v10.6.0/API.md#
 
 ### JoiArray
 
+Supports all of the Joi Array options, passed as an object with arguments.
+
 ### JoiBoolean
+
+Supports all of the Joi Boolean options, passed as an object with arguments.
 
 ### JoiDate
 
+Supports all of the Joi Date options, passed as an object with arguments.
+
 ### JoiNumber
+
+Supports all of the Joi Number options, passed as an object with arguments.
 
 ### JoiString
 
