@@ -6,7 +6,7 @@ GraphQL Joi Scalars
 ### Usage Example
 
 ```javascript
-const Graphi = require('graphi);
+const Graphi = require('graphi');
 const Hapi = require('hapi');
 const { JoiString } = require('scalars');
 
