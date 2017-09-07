@@ -24,10 +24,13 @@
   "homepage": "https://github.com/geek/scalars#readme",
   "devDependencies": {
     "belly-button": "^4.0.1",
-    "lab": "^14.2.2"
+    "lab": "^14.2.2",
+    "graphql": "0.11.x"
+  },
+  "peerDependencies": {
+    "graphql": "0.11.x"
   },
   "dependencies": {
-    "graphql": "^0.11.2",
     "joi": "^10.6.0"
   }
 }
