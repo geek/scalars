@@ -5,6 +5,7 @@
   "main": "lib",
   "scripts": {
     "lint": "belly-button",
+    "pretest": "npm run lint",
     "test": "lab -c"
   },
   "repository": {
@@ -23,14 +24,13 @@
   },
   "homepage": "https://github.com/geek/scalars#readme",
   "devDependencies": {
-    "belly-button": "^4.0.1",
-    "lab": "^14.2.2",
-    "graphql": "0.11.x"
-  },
-  "peerDependencies": {
-    "graphql": "0.11.x"
+    "belly-button": "4.1.x",
+    "code": "5.x.x",
+    "graphql": "0.13.x",
+    "lab": "15.x.x"
   },
   "dependencies": {
-    "joi": "^10.6.0"
+    "graphql": "0.13.x",
+    "joi": "13.4.x"
   }
 }

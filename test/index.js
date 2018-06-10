@@ -1,10 +1,13 @@
 'use strict';
 
+const Code = require('code');
 const Graphql = require('graphql');
 const Lab = require('lab');
 const Scalars = require('../');
 
-const { describe, it, expect } = exports.lab = Lab.script();
+
+const { describe, it } = exports.lab = Lab.script();
+const { expect } = Code;
 const { GraphQLObjectType, GraphQLSchema, GraphQLString } = Graphql;
 
 
@@ -15,22 +18,24 @@ describe('JoiAny()', () => {
         name: 'RootQueryType',
         fields: {
           person: {
-            type: GraphQLString,
+            type: Scalars.JoiString(),
             args: {
-              name: { type: new Scalars.JoiAny() }
+              name: { type: Scalars.JoiAny() }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(name: "roger") }`);
+    const result1 = await Graphql.graphql(schema, '{ person(name: "roger") }');
     expect(result1.data.person).to.equal('roger');
-    const result2 = await Graphql.graphql(schema, `{ person(name: true) }`);
+    const result2 = await Graphql.graphql(schema, '{ person(name: true) }');
     expect(result2.data.person).to.equal('true');
-
-    return Promise.resolve();
+    const result3 = await Graphql.graphql(schema, '{ person(name: 1) }');
+    expect(result3.data.person).to.equal('1');
   });
 
   it('only executes functions available in joi', async () => {
@@ -41,20 +46,20 @@ describe('JoiAny()', () => {
           person: {
             type: GraphQLString,
             args: {
-              name: { type: new Scalars.JoiAny({ whatever: true }) }
+              name: { type: Scalars.JoiAny({ whatever: true }) }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(name: "roger") }`);
+    const result1 = await Graphql.graphql(schema, '{ person(name: "roger") }');
     expect(result1.data.person).to.equal('roger');
-    const result2 = await Graphql.graphql(schema, `{ person(name: true) }`);
+    const result2 = await Graphql.graphql(schema, '{ person(name: true) }');
     expect(result2.data.person).to.equal('true');
-
-    return Promise.resolve();
   });
 
   it('validates when there is a list of valids', async () => {
@@ -65,28 +70,46 @@ describe('JoiAny()', () => {
           person: {
             type: GraphQLString,
             args: {
-              name: { type: new Scalars.JoiAny({ valid: ['roger', 'william'] }) }
+              name: { type: Scalars.JoiAny({ valid: ['roger', 'william', true] }) }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(name: "roger") }`);
+    const result1 = await Graphql.graphql(schema, '{ person(name: "roger") }');
     expect(result1.data.person).to.equal('roger');
-    const result2 = await Graphql.graphql(schema, `{ person(name: "william") }`);
+    const result2 = await Graphql.graphql(schema, '{ person(name: "william") }');
     expect(result2.data.person).to.equal('william');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(name: "sarah") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(name: "sarah") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
-      expect(err.message).to.contain('[roger, william]');
+      expect(err.message).to.contain('[roger, william, true]');
     }
 
-    return Promise.resolve();
+    try {
+      const invalid = await Graphql.graphql(schema, '{ person(name: 1) }');
+      expect(invalid).to.not.exist();
+    } catch (err) {
+      expect(err).to.be.error();
+      expect(err.message).to.contain('[roger, william, true]');
+    }
+  });
+
+  it('serialize returns whatever is passed as an argument', () => {
+    const scalar = Scalars.JoiAny();
+
+    const result1 = scalar.serialize(1);
+    expect(result1).to.equal(1);
+
+    const result2 = scalar.serialize(null);
+    expect(result2).to.equal(null);
   });
 });
 
@@ -100,25 +123,25 @@ describe('JoiArray()', () => {
           person: {
             type: GraphQLString,
             args: {
-              items: { type: new Scalars.JoiArray({ min: 2 }) }
+              items: { type: Scalars.JoiArray({ min: 2 }) }
             },
-            resolve: (root, (info, { items }) => items[0].value)
+            resolve: (root, (info, { items }) => {
+              return items[0].value;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(items: ["roger", "sarah", "eran"]) }`);
+    const result1 = await Graphql.graphql(schema, '{ person(items: ["roger", "sarah", "eran"]) }');
     expect(result1.data.person).to.contain('roger');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(items: ["1"]) }`);
+      const invalid = await Graphql.graphql(schema, '{ person(items: ["1"]) }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 
   it('validates an expected length', async () => {
@@ -129,32 +152,32 @@ describe('JoiArray()', () => {
           person: {
             type: GraphQLString,
             args: {
-              items: { type: new Scalars.JoiArray({ length: 1 }) }
+              items: { type: Scalars.JoiArray({ length: 1 }) }
             },
-            resolve: (root, (info, { items }) => items[0].value)
+            resolve: (root, (info, { items }) => {
+              return items[0].value;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(items: ["roger"]) }`);
+    const result1 = await Graphql.graphql(schema, '{ person(items: ["roger"]) }');
     expect(result1.data.person).to.contain('roger');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(items: ["roger", "sarah", "eran"]) }`);
+      const invalid = await Graphql.graphql(schema, '{ person(items: ["roger", "sarah", "eran"]) }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(items: "boo") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(items: "boo") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 });
 
@@ -168,28 +191,28 @@ describe('JoiBoolean()', () => {
           person: {
             type: GraphQLString,
             args: {
-              name: { type: new Scalars.JoiBoolean({ truthy: 'Y' }) }
+              name: { type: Scalars.JoiBoolean({ truthy: 'Y' }) }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result1 = await Graphql.graphql(schema, `{ person(name: "Y") }`);
+    const result1 = await Graphql.graphql(schema, '{ person(name: "Y") }');
     expect(result1.data.person).to.equal('true');
 
-    const result2 = await Graphql.graphql(schema, `{ person(name: true) }`);
+    const result2 = await Graphql.graphql(schema, '{ person(name: true) }');
     expect(result2.data.person).to.equal('true');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(name: "boo") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(name: "boo") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 });
 
@@ -202,9 +225,11 @@ describe('JoiDate()', () => {
           person: {
             type: GraphQLString,
             args: {
-              birthday: { type: new Scalars.JoiDate() }
+              birthday: { type: Scalars.JoiDate() }
             },
-            resolve: (root, (info, { birthday }) => birthday)
+            resolve: (root, (info, { birthday }) => {
+              return birthday;
+            })
           }
         }
       })
@@ -215,13 +240,11 @@ describe('JoiDate()', () => {
     expect(result1.data.person).to.equal(new Date(now).toString());
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(birthday: "Infinity") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(birthday: "Infinity") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 
   it('validates date max value', async () => {
@@ -233,9 +256,11 @@ describe('JoiDate()', () => {
           person: {
             type: GraphQLString,
             args: {
-              birthday: { type: new Scalars.JoiDate({ max: now }) }
+              birthday: { type: Scalars.JoiDate({ max: now }) }
             },
-            resolve: (root, (info, { birthday }) => birthday)
+            resolve: (root, (info, { birthday }) => {
+              return birthday;
+            })
           }
         }
       })
@@ -251,13 +276,50 @@ describe('JoiDate()', () => {
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 });
 
 
 describe('JoiNumber()', () => {
+  it('validates that value is a number', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'RootQueryType',
+        fields: {
+          person: {
+            type: GraphQLString,
+            args: {
+              age: { type: Scalars.JoiNumber() }
+            },
+            resolve: (root, (info, { age }) => {
+              return age;
+            })
+          }
+        }
+      })
+    });
+
+    const result1 = await Graphql.graphql(schema, '{ person(age: 5) }');
+    expect(result1.data.person).to.equal('5');
+
+    const result2 = await Graphql.graphql(schema, '{ person(age: "5") }');
+    expect(result2.data.person).to.equal('5');
+
+    try {
+      const invalid = await Graphql.graphql(schema, '{ person(age: "boo") }');
+      expect(invalid).to.not.exist();
+    } catch (err) {
+      expect(err).to.be.error();
+    }
+
+    try {
+      const invalid = await Graphql.graphql(schema, '{ person(age: true) }');
+      expect(invalid).to.not.exist();
+    } catch (err) {
+      expect(err).to.be.error();
+    }
+  });
+
   it('validates min/max values', async () => {
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
@@ -266,32 +328,42 @@ describe('JoiNumber()', () => {
           person: {
             type: GraphQLString,
             args: {
-              age: { type: new Scalars.JoiNumber({ min: 2, max: 10 }) }
+              age: { type: Scalars.JoiNumber({ min: 2, max: 10 }) }
             },
-            resolve: (root, (info, { age }) => age)
+            resolve: (root, (info, { age }) => {
+              return age;
+            })
           }
         }
       })
     });
 
-    const result = await Graphql.graphql(schema, `{ person(age: 5) }`);
-    expect(result.data.person).to.equal('5');
+    const result1 = await Graphql.graphql(schema, '{ person(age: 5) }');
+    expect(result1.data.person).to.equal('5');
+
+    const result2 = await Graphql.graphql(schema, '{ person(age: "5") }');
+    expect(result2.data.person).to.equal('5');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(age: "1") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(age: "1") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(age: 12) }`);
+      const invalid = await Graphql.graphql(schema, '{ person(age: 12) }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
+  });
 
-    return Promise.resolve();
+  it('serializes numbers', () => {
+    const scalar = Scalars.JoiNumber();
+
+    const result1 = scalar.serialize(1);
+    expect(result1).to.equal(1);
   });
 });
 
@@ -305,32 +377,24 @@ describe('JoiString()', () => {
           person: {
             type: GraphQLString,
             args: {
-              name: { type: new Scalars.JoiString({ min: [2, 'utf8'], max: 10 }) }
+              name: { type: Scalars.JoiString({ min: [2, 'utf8'], max: 10 }) }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result = await Graphql.graphql(schema, `{ person(name: "roger") }`);
+    const result = await Graphql.graphql(schema, '{ person(name: "roger") }');
     expect(result.data.person).to.equal('roger');
 
-    try {
-      const invalid = await Graphql.graphql(schema, `{ person(name: "1") }`);
-      expect(invalid).to.not.exist();
-    } catch (err) {
-      expect(err).to.be.error('"value" length must be at least 2 characters long');
-    }
+    let invalid = await Graphql.graphql(schema, '{ person(name: "1") }');
+    expect(invalid.errors[0]).to.be.error();
 
-    try {
-      const invalid = await Graphql.graphql(schema, `{ person(name: "toolongofaname") }`);
-      expect(invalid).to.not.exist();
-    } catch (err) {
-      expect(err).to.be.error('"value" length must be less than or equal to 10 characters long');
-    }
-
-    return Promise.resolve();
+    invalid = await Graphql.graphql(schema, '{ person(name: "toolongofaname") }');
+    expect(invalid.errors[0]).to.be.error();
   });
 
   it('validates alphanum', async () => {
@@ -343,22 +407,22 @@ describe('JoiString()', () => {
             args: {
               name: { type: Scalars.JoiString({ alphanum: true }) }
             },
-            resolve: (root, (info, { name }) => name)
+            resolve: (root, (info, { name }) => {
+              return name;
+            })
           }
         }
       })
     });
 
-    const result = await Graphql.graphql(schema, `{ person(name: "roger") }`);
-    expect(result.data.person).to.equal('roger');
+    const result = await Graphql.graphql(schema, '{ person(name: 1) }');
+    expect(result.data.person).to.equal('1');
 
     try {
-      const invalid = await Graphql.graphql(schema, `{ person(name: "@@@") }`);
+      const invalid = await Graphql.graphql(schema, '{ person(name: "@@@") }');
       expect(invalid).to.not.exist();
     } catch (err) {
       expect(err).to.be.error();
     }
-
-    return Promise.resolve();
   });
 });
