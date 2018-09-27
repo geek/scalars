@@ -237,7 +237,7 @@ describe('JoiDate()', () => {
 
     const now = Date.now();
     const result1 = await Graphql.graphql(schema, `{ person(birthday: ${now}) }`);
-    expect(result1.data.person).to.equal(new Date(now).toString());
+    expect(result1.data.person).to.equal(now.toString());
 
     try {
       const invalid = await Graphql.graphql(schema, '{ person(birthday: "Infinity") }');
@@ -268,7 +268,7 @@ describe('JoiDate()', () => {
 
 
     const result1 = await Graphql.graphql(schema, `{ person(birthday: ${now}) }`);
-    expect(result1.data.person).to.equal(new Date(now).toString());
+    expect(result1.data.person).to.equal(now.toString());
 
     try {
       const invalid = await Graphql.graphql(schema, `{ person(birthday: ${now + 100}) }`);

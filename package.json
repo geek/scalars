@@ -26,11 +26,10 @@
   "devDependencies": {
     "belly-button": "4.1.x",
     "code": "5.x.x",
-    "graphql": "0.13.x",
-    "lab": "15.x.x"
+    "lab": "16.x.x"
   },
   "dependencies": {
-    "graphql": "0.13.x",
-    "joi": "13.4.x"
+    "graphql": "14.0.x",
+    "joi": "13.6.x"
   }
 }
